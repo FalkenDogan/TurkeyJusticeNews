@@ -1,0 +1,45 @@
+name: Daily Justice News
+
+on:
+  schedule:
+    # Europe/Berlin 06:00 icin DST gecislerine dayanikli tetikleme:
+    # 04:00 UTC (yaz saati) + 05:00 UTC (kis saati)
+    - cron: "0 4 * * *"
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  send-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Gate at 06:00 Europe/Berlin
+        id: gate
+        env:
+          TZ: Europe/Berlin
+        run: |
+          HOUR=$(date +%H)
+          if [ "$HOUR" = "06" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Berlin saati 06:00, calisma devam ediyor."
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Berlin saati 06:00 degil, bu tetikleme atlandi."
+          fi
+
+      - name: Build and Run
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: mvn -B -ntp clean compile exec:java -Dexec.mainClass=org.example.Main
