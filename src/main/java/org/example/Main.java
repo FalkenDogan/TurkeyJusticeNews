@@ -1,5 +1,8 @@
 package org.example;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -7,50 +10,54 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         try {
-            // 1. ADIM: RSS'lerden haberleri çek
-            System.out.println("📰 Haberler çekiliyor...");
-            NewsService newsService = new NewsService();
-            List<NewsItem> todaysNews = newsService.fetchTodaysNews();
+            ZoneId berlinZone = ZoneId.of("Europe/Berlin");
+            ZonedDateTime berlinNow = ZonedDateTime.now(berlinZone);
+            LocalDate targetDate = berlinNow.toLocalDate().minusDays(1);
 
-            if (todaysNews.isEmpty()) {
-                System.out.println("⚠️ Bugünün haberleri bulunamadı.");
+            // 1. ADIM: RSS'lerden hedef gun (00:00-23:59 Berlin) haberlerini cek
+            System.out.println("Haberler cekiliyor. Hedef gun: " + targetDate + " (Europe/Berlin)");
+            NewsService newsService = new NewsService();
+            List<NewsItem> targetDayNews = newsService.fetchNewsForDate(targetDate, berlinZone);
+
+            if (targetDayNews.isEmpty()) {
+                System.out.println("Uyari: Hedef gun icin haber bulunamadi: " + targetDate);
                 return;
             }
 
-            System.out.println("✅ " + todaysNews.size() + " haber bulundu.");
+            System.out.println(targetDayNews.size() + " haber bulundu.");
 
-            // 2. ADIM: Haberları AI'ya gönderilecek formata çevir [Sayı]- [Başlık]
-            System.out.println("🤖 Haberler Gemini'ye gönderiliyor...");
-            String newsTextForAI = newsService.prepareTextForAI(todaysNews);
-            System.out.println("Gönderilen haber sayısı: " + todaysNews.size());
+            // 2. ADIM: Haberlari AI'ya gonderilecek formata cevir [Sayi]- [Baslik]
+            System.out.println("Haberler Gemini'ye gonderiliyor...");
+            String newsTextForAI = newsService.prepareTextForAI(targetDayNews);
+            System.out.println("Gonderilen haber sayisi: " + targetDayNews.size());
 
-            // 3. ADIM: Gemini'ye gönder ve filtrele
+            // 3. ADIM: Gemini'ye gonder ve filtrele
             GeminiService geminiService = new GeminiService();
             String aiResponse = geminiService.filterNews(newsTextForAI);
-            System.out.println("AI Yanıtı alındı.");
+            System.out.println("AI yaniti alindi.");
 
-            // 4. ADIM: AI'dan dönen veriyi işle ve haber linklerini ekle
-            List<NewsItem> filteredNews = newsService.filterByAIResponse(aiResponse, todaysNews);
+            // 4. ADIM: AI'dan donen veriyi isle ve haber linklerini ekle
+            List<NewsItem> filteredNews = newsService.filterByAIResponse(aiResponse, targetDayNews);
 
-            // 5. ADIM: Telegram'a gönder
+            // 5. ADIM: Telegram'a gonder
             if (!filteredNews.isEmpty()) {
                 String telegramToken = System.getenv("TELEGRAM_BOT_TOKEN");
                 String telegramChatId = System.getenv("TELEGRAM_CHAT_ID");
 
                 if (telegramToken != null && telegramChatId != null) {
-                    System.out.println("📨 Telegram'a gönderiliyor... (" + filteredNews.size() + " haber)");
+                    System.out.println("Telegram'a gonderiliyor... (" + filteredNews.size() + " haber)");
                     String formattedMessage = Utils.formatNewsForTelegram(filteredNews);
                     Utils.sendTelegram(telegramToken, telegramChatId, formattedMessage);
-                    System.out.println("✅ Telegram'a başarıyla gönderildi!");
+                    System.out.println("Telegram'a basariyla gonderildi.");
                 } else {
-                    System.err.println("❌ TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID environment variable'ı ayarlanmadı.");
+                    System.err.println("TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID ayarlanmadi.");
                 }
             } else {
-                System.out.println("✅ Kriterlere uygun haber bulunamadı - boş array döndürüldü: []");
+                System.out.println("Kriterlere uygun haber bulunamadi - bos array: []");
             }
 
         } catch (Exception e) {
-            System.err.println("❌ Hata oluştu: " + e.getMessage());
+            System.err.println("Hata olustu: " + e.getMessage());
             e.printStackTrace();
         }
     }

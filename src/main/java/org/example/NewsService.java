@@ -27,8 +27,12 @@ public class NewsService {
     };
 
     public List<NewsItem> fetchTodaysNews() {
+        // Geriye donuk uyumluluk: eski cagriyi bugunun Berlin tarihine yonlendir.
+        return fetchNewsForDate(LocalDate.now(ZoneId.of("Europe/Berlin")), ZoneId.of("Europe/Berlin"));
+    }
+
+    public List<NewsItem> fetchNewsForDate(LocalDate targetDate, ZoneId zoneId) {
         List<NewsItem> allItems = new ArrayList<>();
-        LocalDate today = LocalDate.now();
 
         for (String url : rssUrls) {
             try {
@@ -38,16 +42,17 @@ public class NewsService {
 
                 for (SyndEntry entry : feed.getEntries()) {
                     Date pubDate = entry.getPublishedDate();
-                    // Eğer tarih yoksa veya bugüne aitse listeye ekle
-                    if (pubDate != null) {
-                        LocalDate entryDate = pubDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                        if (entryDate.equals(today)) {
-                            allItems.add(new NewsItem(entry.getTitle(), entry.getLink()));
-                        }
+                    if (pubDate == null) {
+                        continue;
+                    }
+
+                    LocalDate entryDate = pubDate.toInstant().atZone(zoneId).toLocalDate();
+                    if (entryDate.equals(targetDate)) {
+                        allItems.add(new NewsItem(entry.getTitle(), entry.getLink()));
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Hata: " + url + " okunamadı. " + e.getMessage());
+                System.err.println("Hata: " + url + " okunamadi. " + e.getMessage());
             }
         }
         return allItems;
