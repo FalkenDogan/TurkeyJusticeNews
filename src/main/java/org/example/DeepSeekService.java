@@ -14,9 +14,11 @@ public class DeepSeekService {
 
     public String filterNews(String allNewsText) {
         if (apiKey == null || apiKey.isBlank()) {
+            System.err.println("HATA: DEEPSEEK_API_KEY tanimlanmamis!");
             return "[]";
         }
 
+        System.out.println("DeepSeek API cagiriliyor...");
         try {
             String prompt = "Asagidaki haberleri analiz et. SADECE yargi bagimsizligi, insan haklari ihlalleri, keyfi tutuklama, " +
                     "yolsuzluk ve hukuksuzluklarla, hakim ve savcilarin isledikleri suclarla, ozel hayatlari ile, " +
@@ -45,25 +47,35 @@ public class DeepSeekService {
             HttpResponse<String> response = HttpClient.newHttpClient()
                     .send(request, HttpResponse.BodyHandlers.ofString());
 
+            System.out.println("DeepSeek API yanit kodu: " + response.statusCode());
+
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                System.err.println("DeepSeek API hatasi: " + response.statusCode());
+                System.err.println("Yanit: " + response.body());
                 return "[]";
             }
 
             JSONObject resJson = new JSONObject(response.body());
             JSONArray choices = resJson.optJSONArray("choices");
             if (choices == null || choices.isEmpty()) {
+                System.err.println("DeepSeek yanitinda 'choices' bulunamadi!");
+                System.err.println("Tam yanit: " + response.body());
                 return "[]";
             }
 
             JSONObject message = choices.getJSONObject(0).optJSONObject("message");
             if (message == null) {
+                System.err.println("DeepSeek yanitinda 'message' bulunamadi!");
                 return "[]";
             }
 
             String content = message.optString("content", "[]").trim();
+            System.out.println("DeepSeek filtreleme sonucu alindi. Uzunluk: " + content.length());
             return content.isEmpty() ? "[]" : content;
 
         } catch (Exception e) {
+            System.err.println("DeepSeek API cagrisi sirasinda hata: " + e.getMessage());
+            e.printStackTrace();
             return "[]";
         }
     }

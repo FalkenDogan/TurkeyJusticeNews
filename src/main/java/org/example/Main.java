@@ -35,9 +35,12 @@ public class Main {
             DeepSeekService deepSeekService = new DeepSeekService();
             String aiResponse = deepSeekService.filterNews(newsTextForAI);
             System.out.println("AI yaniti alindi.");
+            System.out.println("AI yaniti (ilk 200 karakter): " +
+                (aiResponse.length() > 200 ? aiResponse.substring(0, 200) + "..." : aiResponse));
 
             // 4. ADIM: AI'dan donen veriyi isle ve haber linklerini ekle
             List<NewsItem> filteredNews = newsService.filterByAIResponse(aiResponse, targetDayNews);
+            System.out.println("Filtrelenmis haber sayisi: " + filteredNews.size());
 
             // 5. ADIM: Telegram'a gonder
             if (!filteredNews.isEmpty()) {
