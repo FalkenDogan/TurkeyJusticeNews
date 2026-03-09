@@ -1,6 +1,6 @@
 # TurkeyJusticeNews
 
-RSS haberlerini toplayan, Gemini ile filtreleyen ve sonucu Telegram'a gonderen Java uygulamasi.
+RSS haberlerini toplayan, DeepSeek ile filtreleyen ve sonucu Telegram'a gonderen Java uygulamasi.
 
 ## Zamanlama
 
@@ -14,11 +14,12 @@ RSS haberlerini toplayan, Gemini ile filtreleyen ve sonucu Telegram'a gonderen J
 Dosya: `.github/workflows/daily-news.yml`
 
 - `04:00 UTC` ve `05:00 UTC` tetiklenir.
-- Workflow icindeki gate adimi sadece Berlin saati `06` oldugunda calismaya devam eder.
+- Workflow icindeki gate adimi sadece schedule tetiklemelerinde Berlin saati `06` oldugunda calismaya devam eder.
+- `workflow_dispatch` ile manuel calistirmada build adimi direkt calisir.
 
 ## Secrets
 
-- `GEMINI_API_KEY`
+- `DEEPSEEK_API_KEY`
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
 

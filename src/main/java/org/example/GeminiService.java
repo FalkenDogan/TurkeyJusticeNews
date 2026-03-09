@@ -10,6 +10,7 @@ import java.net.http.HttpResponse;
 
 public class GeminiService {
 
+    // Bu sinif referans olarak korunuyor; ana akis su an DeepSeekService kullaniyor.
     private final String apiKey = System.getenv("GEMINI_API_KEY"); // GitHub Secrets'tan gelecek
 
 

@@ -27,13 +27,13 @@ public class Main {
             System.out.println(targetDayNews.size() + " haber bulundu.");
 
             // 2. ADIM: Haberlari AI'ya gonderilecek formata cevir [Sayi]- [Baslik]
-            System.out.println("Haberler Gemini'ye gonderiliyor...");
+            System.out.println("Haberler DeepSeek'e gonderiliyor...");
             String newsTextForAI = newsService.prepareTextForAI(targetDayNews);
             System.out.println("Gonderilen haber sayisi: " + targetDayNews.size());
 
-            // 3. ADIM: Gemini'ye gonder ve filtrele
-            GeminiService geminiService = new GeminiService();
-            String aiResponse = geminiService.filterNews(newsTextForAI);
+            // 3. ADIM: DeepSeek'e gonder ve filtrele
+            DeepSeekService deepSeekService = new DeepSeekService();
+            String aiResponse = deepSeekService.filterNews(newsTextForAI);
             System.out.println("AI yaniti alindi.");
 
             // 4. ADIM: AI'dan donen veriyi isle ve haber linklerini ekle
