@@ -2,9 +2,13 @@ package org.example;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Utils {
+
+    private static final String DEFAULT_SOURCE = "DİĞER";
 
     static void sendTelegram(String token, String chatId, String text) throws Exception {
         String encodedText = java.net.URLEncoder.encode(text, "UTF-8");
@@ -30,18 +34,28 @@ public class Utils {
         }
     }
 
-    // Haberler listesini Telegram formatına çevirme
+    // Haberler listesini Telegram formatına çevirme (kaynağa göre gruplandırılmış)
     public static String formatNewsForTelegram(List<NewsItem> items) {
         if (items == null || items.isEmpty()) {
             return "📋 Bugünün önemli hukuk ve yargı haberleri bulunamadı.";
         }
 
+        // Haberleri kaynak sırasını koruyarak gruplandır
+        Map<String, List<NewsItem>> groupedBySource = new LinkedHashMap<>();
+        for (NewsItem item : items) {
+            String source = (item.source != null && !item.source.isBlank()) ? item.source : DEFAULT_SOURCE;
+            groupedBySource.computeIfAbsent(source, k -> new java.util.ArrayList<>()).add(item);
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append("📋 *Türkiye Hukuk ve Yargı Haberleri*\n\n");
 
-        for (NewsItem item : items) {
-            sb.append("🔹 ").append(item.title).append("\n");
-            sb.append("[Detaylar için tıkla](").append(item.link).append(")\n\n");
+        for (Map.Entry<String, List<NewsItem>> entry : groupedBySource.entrySet()) {
+            sb.append("📰 *").append(entry.getKey()).append("*\n\n");
+            for (NewsItem item : entry.getValue()) {
+                sb.append("🔹 ").append(item.title).append("\n");
+                sb.append("[Detaylar için tıkla](").append(item.link).append(")\n\n");
+            }
         }
 
         return sb.toString();
