@@ -4,7 +4,7 @@ on:
   schedule:
     # Europe/Berlin 06:00 icin DST gecislerine dayanikli tetikleme:
     # 04:00 UTC (yaz saati) + 05:00 UTC (kis saati)
-    - cron: "0 12 * * *"
+    - cron: "0 5 * * *"
   workflow_dispatch:
 
 jobs:
