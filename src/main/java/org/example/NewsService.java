@@ -27,7 +27,6 @@ public class NewsService {
         rssSourceMap.put("https://www.cumhuriyet.com.tr/rss/son_dakika.xml", "CUMHURİYET");
         rssSourceMap.put("https://www.diken.com.tr/feed/", "DİKEN");
         rssSourceMap.put("https://rss.dw.com/rdf/rss-tur-all", "DW TÜRKÇE");
-        rssSourceMap.put("https://www.gazeteduvar.com.tr/export/rss", "GAZETE DUVAR");
         rssSourceMap.put("https://halktv.com.tr/service/rss.php", "HALK TV");
     }
 
