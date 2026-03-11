@@ -73,26 +73,41 @@ public class NewsService {
         return sb.toString();
     }
 
-    // Gemini'den dönen veriyi işleyerek haber linklerini tekrar ekleme
+    // AI'dan dönen veriyi işleyerek haber linklerini tekrar ekleme
     public List<NewsItem> filterByAIResponse(String aiResponse, List<NewsItem> originalItems) {
         List<NewsItem> filteredItems = new ArrayList<>();
+
+        if (aiResponse == null || aiResponse.isBlank() || aiResponse.trim().equals("[]")) {
+            return filteredItems;
+        }
 
         // Her satırı işle
         String[] lines = aiResponse.split("\n");
         for (String line : lines) {
-            // [Sayı]- formatını ara
-            if (line.matches(".*\\d+-.*")) {
+            line = line.trim();
+
+            // Köşeli parantezleri temizle: [16- Başlık] -> 16- Başlık
+            if (line.startsWith("[")) {
+                line = line.substring(1);
+            }
+            if (line.endsWith("]")) {
+                line = line.substring(0, line.length() - 1);
+            }
+
+            // Sayı- formatını ara (örn: 16- Başlık)
+            if (line.matches("\\d+-.+")) {
                 try {
-                    // Satırdan numarayı çıkar
                     int dashIndex = line.indexOf("-");
                     if (dashIndex > 0) {
                         String numberPart = line.substring(0, dashIndex).trim();
                         int newsIndex = Integer.parseInt(numberPart);
 
-                        // Index geçerliyse orijinal haber linkini ekle
+                        // Index geçerliyse orijinal haber linkini ekle (tekrar eklemeyi önle)
                         if (newsIndex >= 0 && newsIndex < originalItems.size()) {
                             NewsItem original = originalItems.get(newsIndex);
-                            filteredItems.add(original);
+                            if (!filteredItems.contains(original)) {
+                                filteredItems.add(original);
+                            }
                         }
                     }
                 } catch (NumberFormatException e) {
