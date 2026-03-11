@@ -25,7 +25,7 @@ public class NewsService {
             Pattern.compile("^\\[?\\s*(\\d+)\\s*\\]?\\s*[-).:]\\s*.*$");
 
     private static final String[] LEGAL_INCLUDE_KEYWORDS = {
-            "yargi", "yargi", "mahkeme", "dava", "hakim", "savci",
+            "yargi", "mahkeme", "dava", "hakim", "savci",
             "adalet", "anayasa mahkemesi", "aym", "danistay", "yargitay",
             "aihm", "hukuk", "tutuk", "gozalti", "cezaevi", "iskence",
             "ihlal", "hsk", "karar", "beraat", "iddianame", "yolsuzluk", "feto", "gulen", "hizmet hareketi"
