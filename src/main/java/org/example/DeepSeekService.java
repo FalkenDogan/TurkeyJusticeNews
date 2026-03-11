@@ -20,14 +20,27 @@ public class DeepSeekService {
 
         System.out.println("DeepSeek API cagiriliyor...");
         try {
-            String prompt = "Asagidaki haberleri analiz et. SADECE yargi bagimsizligi, insan haklari ihlalleri, keyfi tutuklama, " +
-                    "yolsuzluk ve hukuksuzluklarla, hakim ve savcilarin isledikleri suclarla, ozel hayatlari ile, " +
-                    "Yargitay, Danistay, Anayasa Mahkemesi ve AIHM'nin onemli kararlari ilgili olanlari, " +
-                    "FETO, Gulen Hareketi ve Hizmet Hareketi temali haberlerle ilgili olanlari sec.\n\n" +
-                    "ONEMLI: Cevabini MUTLAKA [Sayi]- formatinda ver. Ornek:\n" +
-                    "0- Mahkeme karari iptal edildi\n" +
-                    "2- Hukuksuz tutuklama raporu\n\n" +
-                    "Eger kriterlere uygun HABER BULAMAZSAN, bos bir dizi dondur: []\n\n" +
+            String prompt =
+                    "Asagidaki numarali basliklardan SADECE Turkiye yargi-hukuk-insan haklari kapsamindaki haberleri sec.\n" +
+                    "\n" +
+                    "DAHIL ET:\n" +
+                    "- Adalet Bakanligi, Yargitay, Danistay, AYM, AIHM karar/atama/gorev degisikligi\n" +
+                    "- Yargi bagimsizligi, insan haklari ihlali, iskence, keyfi tutuklama, cezaevi ihlali\n" +
+                    "- Hakim/savci suclari, yolsuzluk iddialari, dikkat cekici yargi kararlari\n" +
+                    "- FETO, Gulen Hareketi, Hizmet Hareketi baglaminda yargi-hukuk haberleri\n" +
+                    "\n" +
+                    "DISLA:\n" +
+                    "- Yemek, magazin, astroloji, burc, yasam tuyolari, spor, ekonomi-genel, dis politika-genel\n" +
+                    "- Mahkeme ilanlari/tebligat duyurulari (orn: 'T.C. ... MAHKEMESI HAKIMLIGI')\n" +
+                    "\n" +
+                    "KURAL: Emin degilsen HABERI SECME.\n" +
+                    "\n" +
+                    "CEVAP FORMATI ZORUNLU:\n" +
+                    "- Sadece JSON dizi dondur.\n" +
+                    "- Sadece indeksler olsun. Ornek: [3, 8, 25]\n" +
+                    "- Aciklama, metin, markdown, kod blogu ekleme.\n" +
+                    "- Uygun haber yoksa [] dondur.\n" +
+                    "\n" +
                     "HABERLER:\n" + allNewsText;
 
             JSONObject jsonBody = new JSONObject()
@@ -71,11 +84,43 @@ public class DeepSeekService {
 
             String content = message.optString("content", "[]").trim();
             System.out.println("DeepSeek filtreleme sonucu alindi. Uzunluk: " + content.length());
-            return content.isEmpty() ? "[]" : content;
+            return normalizeToJsonIndexArray(content);
 
         } catch (Exception e) {
             System.err.println("DeepSeek API cagrisi sirasinda hata: " + e.getMessage());
             e.printStackTrace();
+            return "[]";
+        }
+    }
+
+    private String normalizeToJsonIndexArray(String content) {
+        if (content == null || content.isBlank()) {
+            return "[]";
+        }
+
+        String trimmed = content.trim();
+        if (trimmed.startsWith("```") && trimmed.endsWith("```")) {
+            trimmed = trimmed.replace("```json", "").replace("```", "").trim();
+        }
+
+        // Ilk JSON dizi bolumunu ayikla.
+        int start = trimmed.indexOf('[');
+        int end = trimmed.lastIndexOf(']');
+        if (start < 0 || end <= start) {
+            return "[]";
+        }
+
+        String candidate = trimmed.substring(start, end + 1).trim();
+        try {
+            JSONArray arr = new JSONArray(candidate);
+            JSONArray onlyInts = new JSONArray();
+            for (int i = 0; i < arr.length(); i++) {
+                if (arr.get(i) instanceof Number) {
+                    onlyInts.put(arr.getInt(i));
+                }
+            }
+            return onlyInts.toString();
+        } catch (Exception e) {
             return "[]";
         }
     }

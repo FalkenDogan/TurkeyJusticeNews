@@ -21,7 +21,12 @@ Dosya: `.github/workflows/daily-news.yml`
 
 - `DEEPSEEK_API_KEY`
 - `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
+- `TELEGRAM_CHAT_ID` (opsiyonel, tek chat icin)
+- `TELEGRAM_CHAT_IDS` (opsiyonel, coklu chat icin CSV; ornek: `12345,-10098765,67890`)
+
+Not:
+- Bot ile DM'de `/start` yazan kullanicilarin chat id'leri Telegram `getUpdates` ile otomatik kesfedilir.
+- Bu sayede sadece tek bir chat id'ye degil, botu baslatan diger kullanicilara da gonderim yapilabilir.
 
 ## Lokal Calistirma
 

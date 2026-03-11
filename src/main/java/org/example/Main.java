@@ -3,7 +3,9 @@ package org.example;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -34,6 +36,7 @@ public class Main {
             // 3. ADIM: DeepSeek'e gonder ve filtrele
             DeepSeekService deepSeekService = new DeepSeekService();
             String aiResponse = deepSeekService.filterNews(newsTextForAI);
+
             System.out.println("AI yaniti alindi.");
             System.out.println("AI yaniti (ilk 200 karakter): " +
                 (aiResponse.length() > 200 ? aiResponse.substring(0, 200) + "..." : aiResponse));
@@ -45,15 +48,28 @@ public class Main {
             // 5. ADIM: Telegram'a gonder
             if (!filteredNews.isEmpty()) {
                 String telegramToken = System.getenv("TELEGRAM_BOT_TOKEN");
+                String telegramChatIdsCsv = System.getenv("TELEGRAM_CHAT_IDS");
                 String telegramChatId = System.getenv("TELEGRAM_CHAT_ID");
 
-                if (telegramToken != null && telegramChatId != null) {
-                    System.out.println("Telegram'a gonderiliyor... (" + filteredNews.size() + " haber)");
+                if (telegramToken != null && !telegramToken.isBlank()) {
+                    Set<String> recipientChatIds = new LinkedHashSet<>();
+                    recipientChatIds.addAll(Utils.parseChatIdsCsv(telegramChatIdsCsv));
+                    if (telegramChatId != null && !telegramChatId.isBlank()) {
+                        recipientChatIds.add(telegramChatId.trim());
+                    }
+                    recipientChatIds.addAll(Utils.discoverChatIdsFromUpdates(telegramToken));
+
+                    if (recipientChatIds.isEmpty()) {
+                        System.err.println("Hedef chat bulunamadi. TELEGRAM_CHAT_ID/TELEGRAM_CHAT_IDS ayarla veya bota /start gonder.");
+                        return;
+                    }
+
+                    System.out.println("Telegram'a gonderiliyor... (" + filteredNews.size() + " haber, hedef chat: " + recipientChatIds.size() + ")");
                     String formattedMessage = Utils.formatNewsForTelegram(filteredNews);
-                    Utils.sendTelegram(telegramToken, telegramChatId, formattedMessage);
-                    System.out.println("Telegram'a basariyla gonderildi.");
+                    int successCount = Utils.sendTelegramToMany(telegramToken, recipientChatIds, formattedMessage);
+                    System.out.println("Telegram gonderimi tamamlandi. Basarili chat sayisi: " + successCount + "/" + recipientChatIds.size());
                 } else {
-                    System.err.println("TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID ayarlanmadi.");
+                    System.err.println("TELEGRAM_BOT_TOKEN ayarlanmadi.");
                 }
             } else {
                 System.out.println("Kriterlere uygun haber bulunamadi - bos array: []");
