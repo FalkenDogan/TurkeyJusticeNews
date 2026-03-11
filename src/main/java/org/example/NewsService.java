@@ -23,7 +23,7 @@ public class NewsService {
         rssSourceMap.put("https://www.sozcu.com.tr/feeds-rss-category-gundem", "SÖZCÜ");
         rssSourceMap.put("https://www.birgun.net/rss/home", "BİRGÜN");
         rssSourceMap.put("https://artigercek.com/service/rss.php", "ARTIGerçek");
-        rssSourceMap.put("https://bianet.org/biamag.rss", "BİANET");
+        rssSourceMap.put("https://bianet.org/rss/bianet", "BİANET");
         rssSourceMap.put("https://www.cumhuriyet.com.tr/rss/son_dakika.xml", "CUMHURİYET");
         rssSourceMap.put("https://www.diken.com.tr/feed/", "DİKEN");
         rssSourceMap.put("https://rss.dw.com/rdf/rss-tur-all", "DW TÜRKÇE");
