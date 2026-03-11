@@ -10,21 +10,26 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NewsService {
 
-    private final String[] rssUrls = {
-            "https://www.sozcu.com.tr/feeds-rss-category-gundem",
-            "https://www.birgun.net/rss/home",
-            "https://artigercek.com/service/rss.php",
-            "https://bianet.org/biamag.rss",
-            "https://www.cumhuriyet.com.tr/rss/son_dakika.xml",
-            "https://www.diken.com.tr/feed/",
-            "https://rss.dw.com/rdf/rss-tur-all",
-            "https://www.gazeteduvar.com.tr/export/rss",
-            "https://halktv.com.tr/service/rss.php"
-    };
+    private static final Map<String, String> rssSourceMap;
+
+    static {
+        rssSourceMap = new LinkedHashMap<>();
+        rssSourceMap.put("https://www.sozcu.com.tr/feeds-rss-category-gundem", "SÖZCÜ");
+        rssSourceMap.put("https://www.birgun.net/rss/home", "BİRGÜN");
+        rssSourceMap.put("https://artigercek.com/service/rss.php", "ARTIGerçek");
+        rssSourceMap.put("https://bianet.org/biamag.rss", "BİANET");
+        rssSourceMap.put("https://www.cumhuriyet.com.tr/rss/son_dakika.xml", "CUMHURİYET");
+        rssSourceMap.put("https://www.diken.com.tr/feed/", "DİKEN");
+        rssSourceMap.put("https://rss.dw.com/rdf/rss-tur-all", "DW TÜRKÇE");
+        rssSourceMap.put("https://www.gazeteduvar.com.tr/export/rss", "GAZETE DUVAR");
+        rssSourceMap.put("https://halktv.com.tr/service/rss.php", "HALK TV");
+    }
 
     public List<NewsItem> fetchTodaysNews() {
         // Geriye donuk uyumluluk: eski cagriyi bugunun Berlin tarihine yonlendir.
@@ -34,21 +39,23 @@ public class NewsService {
     public List<NewsItem> fetchNewsForDate(LocalDate targetDate, ZoneId zoneId) {
         List<NewsItem> allItems = new ArrayList<>();
 
-        for (String url : rssUrls) {
+        for (Map.Entry<String, String> entry : rssSourceMap.entrySet()) {
+            String url = entry.getKey();
+            String sourceName = entry.getValue();
             try {
                 URL feedSource = new URL(url);
                 SyndFeedInput input = new SyndFeedInput();
                 SyndFeed feed = input.build(new XmlReader(feedSource));
 
-                for (SyndEntry entry : feed.getEntries()) {
-                    Date pubDate = entry.getPublishedDate();
+                for (SyndEntry syndEntry : feed.getEntries()) {
+                    Date pubDate = syndEntry.getPublishedDate();
                     if (pubDate == null) {
                         continue;
                     }
 
                     LocalDate entryDate = pubDate.toInstant().atZone(zoneId).toLocalDate();
                     if (entryDate.equals(targetDate)) {
-                        allItems.add(new NewsItem(entry.getTitle(), entry.getLink()));
+                        allItems.add(new NewsItem(syndEntry.getTitle(), syndEntry.getLink(), sourceName));
                     }
                 }
             } catch (Exception e) {
