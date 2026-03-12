@@ -101,7 +101,7 @@ public class BlueskyService {
         System.out.println("[BlueskyService] Hukuk/yargı filtresinden geçen: " + filteredItems.size());
         return filteredItems;
     }
-
+/*
     public static void main(String[] args) {
         LocalDate targetDate = TODAY.atZoneSameInstant(TARGET_ZONE).toLocalDate().minusDays(MINUS_DAYS);
 
@@ -133,7 +133,7 @@ public class BlueskyService {
 
         System.out.println("\nJSON debug ozeti:\n" + GSON.toJson(debugResult));
     }
-
+*/
     private static List<FetchedNews> fetchNewsForDate(String actor, LocalDate targetDate) {
         Map<String, FetchedNews> selected = new LinkedHashMap<>();
         String cursor = null;

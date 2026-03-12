@@ -24,7 +24,7 @@ public class DeepSeekService {
                     "Asagidaki numarali basliklardan SADECE Turkiye yargi-hukuk-insan haklari kapsamindaki haberleri sec.\n" +
                     "\n" +
                     "DAHIL ET:\n" +
-                    "- Adalet Bakanligi, Yargitay, Danistay, AYM, AIHM karar/atama/gorev degisikligi\n" +
+                    "- Adalet Bakanligi, HSK, Yargitay, Danistay, AYM, AIHM karar/atama/gorev degisikligi\n" +
                     "- Yargi bagimsizligi, insan haklari ihlali, iskence, keyfi tutuklama, cezaevi ihlali\n" +
                     "- Hakim/savci suclari, yolsuzluk iddialari, dikkat cekici yargi kararlari\n" +
                     "- FETO, Gulen Hareketi, Hizmet Hareketi baglaminda yargi-hukuk haberleri\n" +

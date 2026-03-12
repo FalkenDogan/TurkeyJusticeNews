@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -152,6 +154,11 @@ public class Utils {
 
         StringBuilder sb = new StringBuilder();
         sb.append("📋 *Türkiye Hukuk ve Yargı Haberleri*\n\n");
+        
+        // Günün tarihini ekle
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        sb.append("📅 *").append(today.format(formatter)).append("*\n\n");
 
         for (Map.Entry<String, List<NewsItem>> entry : groupedBySource.entrySet()) {
             sb.append("📰 *").append(entry.getKey()).append("*\n\n");
