@@ -2,9 +2,9 @@ name: Daily Justice News
 
 on:
   schedule:
-    # Europe/Berlin 06:00 icin DST gecislerine dayanikli tetikleme:
-    # 04:00 UTC (yaz saati) + 05:00 UTC (kis saati)
-    - cron: "0 5 * * *"
+    # Europe/Berlin 23:30 icin DST gecislerine dayanikli tetikleme:
+    - cron: "30 21 * * *"   # Yaz saati (CEST, UTC+2)
+    - cron: "30 22 * * *"   # Kis saati (CET, UTC+1)
   workflow_dispatch:
 
 jobs:
@@ -20,19 +20,19 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Gate at 06:00 Europe/Berlin
+      - name: Gate at 23:30 Europe/Berlin
         if: github.event_name == 'schedule'
         id: gate
         env:
           TZ: Europe/Berlin
         run: |
           HOUR=$(date +%H)
-          if [ "$HOUR" = "06" ]; then
+          if [ "$HOUR" = "23" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "Berlin saati 06:00, calisma devam ediyor."
+            echo "Berlin saati 23:xx, calisma devam ediyor."
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Berlin saati 06:00 degil, bu tetikleme atlandi."
+            echo "Berlin saati 23:xx degil, bu tetikleme atlandi."
           fi
 
       - name: Build and Run

@@ -40,7 +40,7 @@ public class NewsService {
 
     static {
         rssSourceMap = new LinkedHashMap<>();
-        rssSourceMap.put(" http://www.aa.com.tr/tr/rss/default?cat=guncel", "Anadolu Ajans");
+        rssSourceMap.put("http://www.aa.com.tr/tr/rss/default?cat=guncel", "Anadolu Ajans");
         rssSourceMap.put("https://artigercek.com/service/rss.php", "ARTIGerçek");
         rssSourceMap.put("https://www.birgun.net/rss/home", "BİRGÜN");
         rssSourceMap.put("https://bianet.org/rss/bianet", "BİANET");

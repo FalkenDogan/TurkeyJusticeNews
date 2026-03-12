@@ -14,7 +14,7 @@ public class Main {
         try {
             ZoneId berlinZone = ZoneId.of("Europe/Berlin");
             ZonedDateTime berlinNow = ZonedDateTime.now(berlinZone);
-            LocalDate targetDate = berlinNow.toLocalDate().minusDays(1);
+            LocalDate targetDate = berlinNow.toLocalDate().minusDays(0);
 
             // 1. ADIM: RSS'lerden hedef gun (00:00-23:59 Berlin) haberlerini cek
             System.out.println("Haberler cekiliyor. Hedef gun: " + targetDate + " (Europe/Berlin)");
