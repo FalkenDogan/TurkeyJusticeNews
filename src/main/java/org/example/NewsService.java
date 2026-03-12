@@ -41,13 +41,10 @@ public class NewsService {
     static {
         rssSourceMap = new LinkedHashMap<>();
         rssSourceMap.put("http://www.aa.com.tr/tr/rss/default?cat=guncel", "Anadolu Ajans");
-        rssSourceMap.put("https://artigercek.com/service/rss.php", "ARTIGerçek");
         rssSourceMap.put("https://www.birgun.net/rss/home", "BİRGÜN");
         rssSourceMap.put("https://bianet.org/rss/bianet", "BİANET");
-        rssSourceMap.put("https://www.cumhuriyet.com.tr/rss/son_dakika.xml", "CUMHURİYET");
         rssSourceMap.put("https://rss.dw.com/rdf/rss-tur-all", "DW TÜRKÇE");
         rssSourceMap.put("https://halktv.com.tr/service/rss.php", "HALK TV");
-        rssSourceMap.put("https://www.milliyet.com.tr/rss/rssnew/sondakikarss.xml", "MİLLİYET");
         rssSourceMap.put("https://www.sozcu.com.tr/feeds-rss-category-gundem", "SÖZCÜ");
 
     }
