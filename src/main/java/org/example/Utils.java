@@ -37,15 +37,47 @@ public class Utils {
 
     static int sendTelegramToMany(String token, Set<String> chatIds, String text) {
         int successCount = 0;
+        List<String> chunks = splitMessage(text, 4096);
         for (String chatId : chatIds) {
-            try {
-                sendTelegram(token, chatId, text);
+            boolean allChunksOk = true;
+            for (String chunk : chunks) {
+                try {
+                    sendTelegram(token, chatId, chunk);
+                } catch (Exception e) {
+                    System.err.println("Telegram chat atlandi (" + chatId + "): " + e.getMessage());
+                    allChunksOk = false;
+                    break;
+                }
+            }
+            if (allChunksOk) {
                 successCount++;
-            } catch (Exception e) {
-                System.err.println("Telegram chat atlandi (" + chatId + "): " + e.getMessage());
             }
         }
         return successCount;
+    }
+
+    static List<String> splitMessage(String text, int maxLength) {
+        List<String> chunks = new java.util.ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            return chunks;
+        }
+        if (text.length() <= maxLength) {
+            chunks.add(text);
+            return chunks;
+        }
+        int start = 0;
+        while (start < text.length()) {
+            int end = Math.min(start + maxLength, text.length());
+            if (end < text.length()) {
+                int lastNewline = text.lastIndexOf('\n', end - 1);
+                if (lastNewline > start) {
+                    end = lastNewline + 1;
+                }
+            }
+            chunks.add(text.substring(start, end));
+            start = end;
+        }
+        return chunks;
     }
 
     static Set<String> discoverChatIdsFromUpdates(String token) {
@@ -116,17 +148,26 @@ public class Utils {
     }
 
     static void sendTelegram(String token, String chatId, String text) throws Exception {
-        String encodedText = java.net.URLEncoder.encode(text, "UTF-8");
-        String urlString = "https://api.telegram.org/bot" + token +
-                "/sendMessage?chat_id=" + chatId +
-                "&text=" + encodedText +
-                "&parse_mode=Markdown";
+        String urlString = "https://api.telegram.org/bot" + token + "/sendMessage";
 
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         conn.setConnectTimeout(8000);
         conn.setReadTimeout(8000);
+
+        JSONObject payload = new JSONObject();
+        payload.put("chat_id", chatId);
+        payload.put("text", text);
+        payload.put("parse_mode", "Markdown");
+
+        byte[] bodyBytes = payload.toString().getBytes(StandardCharsets.UTF_8);
+        conn.setRequestProperty("Content-Length", String.valueOf(bodyBytes.length));
+        try (var out = conn.getOutputStream()) {
+            out.write(bodyBytes);
+        }
 
         int responseCode = conn.getResponseCode();
         if (responseCode != 200) {
