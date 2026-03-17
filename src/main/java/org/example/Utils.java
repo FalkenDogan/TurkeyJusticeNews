@@ -18,6 +18,7 @@ import java.util.Set;
 public class Utils {
 
     private static final String DEFAULT_SOURCE = "DİĞER";
+    private static final int TELEGRAM_SAFE_LEN = 3900;
 
     static Set<String> parseChatIdsCsv(String csv) {
         Set<String> ids = new LinkedHashSet<>();
@@ -40,6 +41,21 @@ public class Utils {
         for (String chatId : chatIds) {
             try {
                 sendTelegram(token, chatId, text);
+                successCount++;
+            } catch (Exception e) {
+                System.err.println("Telegram chat atlandi (" + chatId + "): " + e.getMessage());
+            }
+        }
+        return successCount;
+    }
+
+    static int sendTelegramChunksToMany(String token, Set<String> chatIds, List<String> chunks) {
+        int successCount = 0;
+        for (String chatId : chatIds) {
+            try {
+                for (String chunk : chunks) {
+                    sendTelegram(token, chatId, chunk);
+                }
                 successCount++;
             } catch (Exception e) {
                 System.err.println("Telegram chat atlandi (" + chatId + "): " + e.getMessage());
@@ -116,33 +132,54 @@ public class Utils {
     }
 
     static void sendTelegram(String token, String chatId, String text) throws Exception {
-        String encodedText = java.net.URLEncoder.encode(text, "UTF-8");
-        String urlString = "https://api.telegram.org/bot" + token +
-                "/sendMessage?chat_id=" + chatId +
-                "&text=" + encodedText +
-                "&parse_mode=Markdown";
+        String urlString = "https://api.telegram.org/bot" + token + "/sendMessage";
 
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
+        conn.setRequestMethod("POST");
         conn.setConnectTimeout(8000);
         conn.setReadTimeout(8000);
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+
+        JSONObject payload = new JSONObject();
+        payload.put("chat_id", chatId);
+        payload.put("text", text);
+        payload.put("parse_mode", "Markdown");
+
+        byte[] output = payload.toString().getBytes(StandardCharsets.UTF_8);
+        conn.getOutputStream().write(output);
 
         int responseCode = conn.getResponseCode();
         if (responseCode != 200) {
             System.err.println("Telegram gönderme hatası → HTTP " + responseCode);
         }
 
-        // Response body okumaya gerek yok ama bağlantıyı temizlemek için
-        try (var in = conn.getInputStream()) {
-            in.readAllBytes();
+        InputStream responseStream = responseCode >= 200 && responseCode < 300
+                ? conn.getInputStream()
+                : conn.getErrorStream();
+
+        if (responseStream != null) {
+            try (InputStream in = responseStream) {
+                in.readAllBytes();
+            }
         }
     }
 
     // Haberler listesini Telegram formatına çevirme (kaynağa göre gruplandırılmış)
     public static String formatNewsForTelegram(List<NewsItem> items) {
+        List<String> chunks = formatNewsForTelegramChunks(items);
+        if (chunks.isEmpty()) {
+            return "";
+        }
+        return String.join("", chunks);
+    }
+
+    public static List<String> formatNewsForTelegramChunks(List<NewsItem> items) {
+        List<String> chunks = new java.util.ArrayList<>();
         if (items == null || items.isEmpty()) {
-            return "📋 Bugünün önemli hukuk ve yargı haberleri bulunamadı.";
+            chunks.add("📋 Bugünün önemli hukuk ve yargı haberleri bulunamadı.");
+            return chunks;
         }
 
         // Haberleri kaynak sırasını koruyarak gruplandır
@@ -156,18 +193,52 @@ public class Utils {
         sb.append("📋 *Türkiye Hukuk ve Yargı Haberleri*\n\n");
         
         // Günün tarihini ekle
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now().minusDays(0); // Haberler dünün tarihine göre çekildiği için
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         sb.append("📅 *").append(today.format(formatter)).append("*\n\n");
 
+        String baseHeader = sb.toString();
+        sb = new StringBuilder(baseHeader);
+
         for (Map.Entry<String, List<NewsItem>> entry : groupedBySource.entrySet()) {
-            sb.append("📰 *").append(entry.getKey()).append("*\n\n");
+            String sourceHeader = "📰 *" + entry.getKey() + "*\n\n";
+
+            if (sb.length() + sourceHeader.length() > TELEGRAM_SAFE_LEN) {
+                chunks.add(sb.toString());
+                sb = new StringBuilder(baseHeader);
+            }
+            sb.append(sourceHeader);
+
             for (NewsItem item : entry.getValue()) {
-                sb.append("🔹 ").append(item.title).append("\n");
-                sb.append("[Detaylar için tıkla](").append(item.link).append(")\n\n");
+                String title = item.title == null ? "" : item.title;
+                String link = item.link == null ? "" : item.link;
+                String newsBlock = "🔹 " + title + "\n" +
+                        "[Detaylar için tıkla](" + link + ")\n\n";
+
+                if (sb.length() + newsBlock.length() > TELEGRAM_SAFE_LEN) {
+                    chunks.add(sb.toString());
+                    sb = new StringBuilder(baseHeader);
+                    sb.append(sourceHeader);
+                }
+
+                if (newsBlock.length() > TELEGRAM_SAFE_LEN) {
+                    String truncatedTitle = title.length() > 500 ? title.substring(0, 500) + "..." : title;
+                    newsBlock = "🔹 " + truncatedTitle + "\n" +
+                            "[Detaylar için tıkla](" + link + ")\n\n";
+                }
+
+                sb.append(newsBlock);
             }
         }
 
-        return sb.toString();
+        if (sb.length() > baseHeader.length()) {
+            chunks.add(sb.toString());
+        }
+
+        if (chunks.isEmpty()) {
+            chunks.add("📋 Bugünün önemli hukuk ve yargı haberleri bulunamadı.");
+        }
+
+        return chunks;
     }
 }

@@ -80,9 +80,9 @@ public class Main {
                         return;
                     }
 
-                    System.out.println("Telegram'a gonderiliyor... (" + filteredNews.size() + " haber, hedef chat: " + recipientChatIds.size() + ")");
-                    String formattedMessage = Utils.formatNewsForTelegram(filteredNews);
-                    int successCount = Utils.sendTelegramToMany(telegramToken, recipientChatIds, formattedMessage);
+                    List<String> messageChunks = Utils.formatNewsForTelegramChunks(filteredNews);
+                    System.out.println("Telegram'a gonderiliyor... (" + filteredNews.size() + " haber, hedef chat: " + recipientChatIds.size() + ", mesaj parcasi: " + messageChunks.size() + ")");
+                    int successCount = Utils.sendTelegramChunksToMany(telegramToken, recipientChatIds, messageChunks);
                     System.out.println("Telegram gonderimi tamamlandi. Basarili chat sayisi: " + successCount + "/" + recipientChatIds.size());
                 } else {
                     System.err.println("TELEGRAM_BOT_TOKEN ayarlanmadi.");

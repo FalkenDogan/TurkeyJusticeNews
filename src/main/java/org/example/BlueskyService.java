@@ -67,7 +67,7 @@ public class BlueskyService {
     private static final String[] ACTORS = {
             "ankahaber.net",
             "t24.com.tr",
-            "evrensel.net"
+          //  "evrensel.net"
     };
 
     /**
